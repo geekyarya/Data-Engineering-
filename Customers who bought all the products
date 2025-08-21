@@ -1,0 +1,41 @@
+Tables
+
+CUSTOMER
+
+CUSTOMER_ID   PRODUCT_KEY
+1             5
+2             6
+3             5
+3             6
+1             6
+
+
+PRODUCT
+
+PRODUCT_KEY
+5
+6
+
+Question:
+
+Find the IDs of all customers who have purchased every product listed in the PRODUCT table.
+
+Solution:
+
+SQL
+WITH CTE1 as
+(SELECT CUSTOMER_ID, COUNT(DISTINCT PRODUCT_KEY) AS PRODUCT_COUNT FROM CUSTOMER GROUP BY CUSTOMER_ID),
+CTE2 as
+(SELECT COUNT(PRODUCT_KEY) FROM PRODUCT)
+SELECT CUSTOMER_ID FROM CUSTOMER JOIN CT1 ON CTE1.PRODUCT_COUNT=CTE2.PRODUCT_COUNT
+
+Pyspark
+customercount=customerDF.groupBy("CUSTOMER_ID").agg(countDistinct("PRODUCT_KEY")).alias("PRODUCT_COUNT")
+
+productcount=productDF.count()
+
+finalresult=customercount.filter(customercount.PRODUCT_COUNT=productcount).select("CUSTOMER_ID")
+
+finalresult.display()
+
+

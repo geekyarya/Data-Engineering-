@@ -1,0 +1,66 @@
+You are given an Employees table with the following columns:
+
+EmployeeID – Unique ID of the employee
+
+Name – Employee’s name
+
+Department – Department in which the employee works
+
+Salary – Salary of the employee
+
+Write an SQL query to find all employees whose salary is higher than the average salary of their department.
+
+Input Table: Employees
+EmployeeID	Name	Department	Salary
+1	David	HR	50000
+2	Ansh	HR	60000
+3	Rohan	IT	70000
+4	Pooja	IT	90000
+5	Amit	Finance	55000
+6	Neha	Finance	75000
+7	Karan	Finance	65000
+
+
+Expected Output
+EmployeeID	Name	Department	Salary
+2	Ansh	HR	60000
+4	Pooja	IT	90000
+6	Neha	Finance	75000
+
+
+
+PySpark Solution:
+from pyspark.sql import SparkSession
+spark=SparkSession.builder.appName("EmployeeSalaryCheck").getOrCreate()
+data=[
+    (1, "David", "HR", 50000),
+    (2, "Ansh", "HR", 60000),
+    (3, "Rohan", "IT", 70000),
+    (4, "Pooja", "IT", 90000),
+    (5, "Amit", "Finance", 55000),
+    (6, "Neha", "Finance", 75000),
+    (7, "Karan", "Finance", 65000)
+]
+column=["EmployeeID", "Name", "Department", "Salary"]
+df=spark.createDataFrame(data, column)
+df.show()
+
+from pyspark.sql.window import Window
+from pyspark.sql.functions import avg, col
+window_spec=Window.partitionBy("Department")
+winDF=df.withColumn("Avg Salary", avg(col("Salary")).over(window_spec))
+winDF.show()
+
+result_df=winDF.filter(col("Salary")>col("Avg Salary"))
+result_df.show()
+
+
+
+SQL Solution:
+df.createOrReplaceTempView("Employees")
+spark.sql("SELECT * FROM Employees").show()
+SELECT * FROM (
+    SELECT EmployeeID, Name, Department, Salary, AVG(Salary) OVER(PARTITION BY (Department)) AS AVG_Salary
+FROM Employees
+)
+WHERE Salary > AVG_Salary;

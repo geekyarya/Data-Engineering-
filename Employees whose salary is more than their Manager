@@ -1,0 +1,48 @@
+Q -> Find employees whose salary is greater than their manager’s salary.
+Input Table:
+| Id | Name  | Salary | ManagerId |
+| -- | ----- | ------ | --------- |
+| 1  | John  | 6000   | 4         |
+| 2  | Kevin | 1000   | 4         |
+| 3  | Bob   | 8000   | 5         |
+| 4  | Laura | 9000   | NULL      |
+| 5  | Kevin | 1000   | NULL      |
+
+Output Table:
++---+----+------+---------+---+-----+------+---------+
+| Id|Name|Salary|ManagerId| Id| Name|Salary|ManagerId|
++---+----+------+---------+---+-----+------+---------+
+|  3| Bob|  8000|        5|  5|Kevin|  1000|     NULL|
++---+----+------+---------+---+-----+------+---------+
+
+Pyspark Solution:
+from pyspark.sql.types import StructType, StructField, IntegerType, StringType
+data=[
+    (1, "John", 6000, 4),
+    (2, "Kevin", 1000, 4),
+    (3, "Bob", 8000, 5),
+    (4, "Laura", 9000, None),
+    (5, "Kevin", 1000, None)
+    ]
+
+schema=StructType([
+    StructField("Id", IntegerType(), True),
+    StructField("Name", StringType(), True),
+    StructField("Salary", IntegerType(), True),
+    StructField("ManagerId", IntegerType(), True)
+])
+
+df=spark.createDataFrame(data,schema)
+df.show()
+from pyspark.sql.functions import col
+joinDF=df.alias("employees").join(df.alias("manager"), col("employees.ManagerId")==col("manager.Id"),"inner")
+joinDF.show()
+resultDF=joinDF.filter(col("employees.Salary")>col("manager.Salary"))
+resultDF.show()
+
+SQL Solution:
+df.createOrReplaceTempView("Employee")
+spark.sql("SELECT * FROM Employee").show()
+SELECT * FROM Employee e
+JOIN Employee m ON e.ManagerId=m.Id
+WHERE e.Salary>m.Salary

@@ -1,0 +1,27 @@
+-- Create simple table
+CREATE TABLE Emp (
+    EmpId INT PRIMARY KEY,
+    Name VARCHAR(50),
+    Gender VARCHAR(10)
+);
+
+-- Insert sample rows
+INSERT INTO Emp (EmpId, Name, Gender) VALUES
+(1, 'Anil', 'Male'),
+(2, 'Sanjana', 'Female'),
+(3, 'Johnny', 'Male'),
+(4, 'Priya', 'Female'),
+(5, 'Suresh', 'Male');
+
+-- Alternate by gender
+SELECT EmpId, Name, Gender
+FROM (
+    SELECT e.*,
+           ROW_NUMBER() OVER (PARTITION BY Gender ORDER BY EmpId) AS rn
+    FROM Emp e
+) t
+ORDER BY rn,
+         CASE Gender
+              WHEN 'Male' THEN 1
+              WHEN 'Female' THEN 2
+         END;

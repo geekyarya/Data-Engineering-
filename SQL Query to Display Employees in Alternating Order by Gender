@@ -25,3 +25,39 @@ ORDER BY rn,
               WHEN 'Male' THEN 1
               WHEN 'Female' THEN 2
          END;
+
+
+
+
+
+
+
+PysPark
+from pyspark.sql import SparkSession
+from pyspark.sql.window import Window
+import pyspark.sql.functions as F
+
+# Create Spark session
+spark = SparkSession.builder.appName("AlternateGenderSort").getOrCreate()
+
+# Sample data
+data = [
+    (1, "Anil", "Male"),
+    (2, "Sanjana", "Female"),
+    (3, "Johnny", "Male"),
+    (4, "Priya", "Female"),
+    (5, "Suresh", "Male")
+]
+
+# Create DataFrame
+df = spark.createDataFrame(data, ["EmpId", "Name", "Gender"])
+
+# Step 1: Assign row_number per gender
+windowSpec = Window.partitionBy("Gender").orderBy("EmpId")
+df_with_rn = df.withColumn("rn", F.row_number().over(windowSpec))
+
+# Step 2: Order by rn, then gender (Male=1, Female=2)
+result = df_with_rn.orderBy("rn", F.when(df_with_rn.Gender == "Male", 1).otherwise(2))
+
+# Show result
+result.show()
